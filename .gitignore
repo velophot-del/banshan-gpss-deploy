@@ -1,0 +1,10 @@
+.DS_Store
+.playwright-cli/
+.vscode/
+.env
+**/.env
+**/node_modules/
+**/dist/
+**/uploads/
+**/case-private-files/
+*.log

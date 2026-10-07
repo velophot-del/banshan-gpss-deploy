@@ -1,0 +1,230 @@
+:root {
+  /* 色彩 —— 日式编辑极简 */
+  --c-bg: #ffffff;
+  --c-bg-soft: #fafafa;
+  --c-ink: #1a1a1a;
+  --c-ink-soft: #4a4a4a;
+  --c-muted: #8a8a8a;
+  --c-line: #e8e8e6;
+  --c-accent: #c8402e;
+
+  /* 字体 */
+  --font-zh: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  --font-en: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  /* 节奏 */
+  --container: 1200px;
+  --gutter: 24px;
+  --section-gap: 96px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-zh);
+  color: var(--c-ink);
+  background: var(--c-bg);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ===== 版式 ===== */
+.kicker {
+  font-family: var(--font-en);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.en-sub {
+  font-family: var(--font-en);
+  color: var(--c-muted);
+}
+
+/* ===== 按钮 ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-zh);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  padding: 12px 28px;
+  border: 1px solid var(--c-ink);
+  background: transparent;
+  color: var(--c-ink);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn:hover {
+  background: var(--c-ink);
+  color: #fff;
+}
+
+.btn.btn-accent {
+  border-color: var(--c-accent);
+  background: var(--c-accent);
+  color: #fff;
+}
+
+.btn.btn-accent:hover {
+  background: #a83224;
+  border-color: #a83224;
+}
+
+.btn.btn-ghost {
+  border-color: var(--c-line);
+  color: var(--c-ink);
+}
+
+.btn.btn-ghost:hover {
+  border-color: var(--c-ink);
+  background: transparent;
+  color: var(--c-ink);
+}
+
+/* ===== 链接下划线（克制） ===== */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: var(--c-ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.link-underline:hover::after {
+  transform: scaleX(1);
+}
+
+/* ===== Markdown 正文排版 ===== */
+.prose {
+  font-size: 16px;
+  line-height: 1.9;
+  color: var(--c-ink-soft);
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  color: var(--c-ink);
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1.8em 0 0.7em;
+}
+
+.prose h1 {
+  font-size: 28px;
+}
+
+.prose h2 {
+  font-size: 22px;
+}
+
+.prose h3 {
+  font-size: 18px;
+}
+
+.prose p {
+  margin: 1em 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.4em 0;
+}
+
+.prose blockquote {
+  margin: 1.6em 0;
+  padding: 0.4em 1.2em;
+  border-left: 2px solid var(--c-accent);
+  color: var(--c-muted);
+  font-style: normal;
+}
+
+.prose img {
+  margin: 1.6em 0;
+}
+
+.prose a {
+  color: var(--c-accent);
+  border-bottom: 1px solid transparent;
+}
+
+.prose a:hover {
+  border-bottom-color: var(--c-accent);
+}
+
+.prose code {
+  font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--c-bg-soft);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+
+.prose pre {
+  background: var(--c-bg-soft);
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  border-radius: 6px;
+  margin: 1.4em 0;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+  :root {
+    --gutter: 20px;
+    --section-gap: 64px;
+  }
+
+  .prose {
+    font-size: 15px;
+  }
+}

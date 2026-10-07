@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.DS_Store
+.claude
+.vscode
+.env
+.env.production
+server/uploads
+server/dist
+test
+test-results
+qa
+release
+*.tar.gz
+*.tar.gz.sha256

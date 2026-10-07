@@ -1,0 +1,10 @@
+services:
+  banshanclient:
+    image: banshanclient
+    build:
+      context: banshan-academy/client
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
