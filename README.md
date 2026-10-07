@@ -155,6 +155,17 @@ docker compose up -d --build        # 更新代码后重建并启动
 1. 用新包覆盖 `banshan-academy/` 或 `gpss/` 源码
 2. `docker compose up -d --build`
 
+### GitHub Actions 自动更新半山学堂
+
+`.github/workflows/deploy-banshan.yml` 会在 `main` 分支的半山学堂源码变更后，打包并通过仓库中的 `upgrade.sh --only banshan --build` 更新半山学堂服务。配置未完成时工作流会跳过部署并在运行摘要中列出缺项。
+
+在 GitHub 仓库 `Settings → Secrets and variables → Actions` 中配置：
+
+- Repository variables：`BANSHAN_DEPLOY_HOST`、`BANSHAN_DEPLOY_USER`
+- Repository secrets：`BANSHAN_DEPLOY_SSH_KEY`、`BANSHAN_DEPLOY_KNOWN_HOSTS`
+
+`BANSHAN_DEPLOY_KNOWN_HOSTS` 必须从可信运维记录取得，工作流启用严格 SSH 主机校验。配置齐全后，可推送半山学堂变更自动部署，也可在 Actions 页面手动运行 `Deploy Banshan Academy`。
+
 ## 启用 HTTPS（可选）
 
 包内已附带 `nginx-https.conf`（HTTP 自动跳转 HTTPS + SSL）。启用步骤：

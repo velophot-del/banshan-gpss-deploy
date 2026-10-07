@@ -1,0 +1,96 @@
+name: Deploy Banshan Academy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'banshan-academy/**'
+      - 'upgrade.sh'
+      - '.github/workflows/deploy-banshan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-banshan
+  cancel-in-progress: false
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ vars.BANSHAN_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.BANSHAN_DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.BANSHAN_DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.BANSHAN_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          missing=()
+          [[ -n "$DEPLOY_HOST" ]] || missing+=("repository variable BANSHAN_DEPLOY_HOST")
+          [[ -n "$DEPLOY_USER" ]] || missing+=("repository variable BANSHAN_DEPLOY_USER")
+          [[ -n "$DEPLOY_KEY" ]] || missing+=("repository secret BANSHAN_DEPLOY_SSH_KEY")
+          [[ -n "$DEPLOY_KNOWN_HOSTS" ]] || missing+=("repository secret BANSHAN_DEPLOY_KNOWN_HOSTS")
+          if ((${#missing[@]})); then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo '### Deployment skipped'
+              echo 'Configure the following repository variables/secrets to enable deployment:'
+              printf -- '- `%s`\n' "${missing[@]}"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare SSH
+        shell: bash
+        env:
+          DEPLOY_KEY: ${{ secrets.BANSHAN_DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.BANSHAN_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+
+      - name: Package Banshan Academy
+        shell: bash
+        run: |
+          stage="$RUNNER_TEMP/banshan-release"
+          mkdir -p "$stage/banshan-academy" "$stage/gpss-src"
+          rsync -a --exclude=node_modules --exclude=dist --exclude=.git --exclude=.DS_Store \
+            banshan-academy/ "$stage/banshan-academy/"
+          touch "$stage/gpss-src/.keep"
+          cp upgrade.sh "$stage/upgrade.sh"
+          archive="$RUNNER_TEMP/banshan-upgrade-${GITHUB_SHA}.tar.gz"
+          tar -czf "$archive" -C "$stage" banshan-academy gpss-src upgrade.sh
+          sha256sum "$archive" > "$archive.sha256"
+          echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
+
+      - name: Upload and deploy
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ vars.BANSHAN_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.BANSHAN_DEPLOY_USER }}
+        run: |
+          archive_name="$(basename "$ARCHIVE")"
+          scp -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$ARCHIVE" "$ARCHIVE.sha256" upgrade.sh \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/"
+          ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash /tmp/upgrade.sh /tmp/$archive_name /tmp/$archive_name.sha256 --only banshan --build"
